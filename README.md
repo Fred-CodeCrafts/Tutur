@@ -6,11 +6,30 @@ Platform pembelajaran bahasa daerah dan dialek lokal Indonesia berbasis komunita
 
 ```
 bahasa-daerah-platform/
-├── be/          # Go backend (REST API + AI pipeline)
+├── be/                           ← Go backend (REST API + AI pipeline)
+│   ├── cmd/server/
+│   ├── internal/
+│   │   ├── domain/               ← shared models & constants
+│   │   ├── auth/
+│   │   ├── phrase/
+│   │   ├── validation/
+│   │   ├── flashcard/
+│   │   ├── search/
+│   │   ├── ai/
+│   │   ├── admin/
+│   │   └── storage/
+│   └── pkg/
+│       ├── db/                   ← pool, migrations (embedded SQL)
+│       ├── middleware/
+│       ├── response/
+│       └── validator/
 ├── fe/
-│   ├── web/     # React web dashboard (Admin)
-│   └── mobile/  # Flutter mobile app (Android/iOS)
-└── misc/        # Docker, docs, scripts
+│   ├── web/src/                  ← React admin dashboard
+│   │   ├── context/, store/, utils/, services/, hooks/, pages/, types/
+│   └── mobile/lib/               ← Flutter app
+│       ├── context/, store/, utils/, services/, models/, screens/, widgets/
+└── misc/
+    └── docker-compose.yml        ← PostgreSQL + MinIO
 ```
 
 ## Quick Start
