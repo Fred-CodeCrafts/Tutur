@@ -15,6 +15,10 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 
+	"github.com/yourusername/bahasa-daerah-platform/internal/auth"
+	"github.com/yourusername/bahasa-daerah-platform/internal/language"
+	"github.com/yourusername/bahasa-daerah-platform/internal/phrase"
+	"github.com/yourusername/bahasa-daerah-platform/internal/validation"
 	"github.com/yourusername/bahasa-daerah-platform/pkg/db"
 )
 
@@ -60,7 +64,41 @@ func main() {
 		fmt.Fprintln(w, `{"status":"ok"}`)
 	})
 
-	// TODO: mount /api/v1 routes (added per task)
+	// ── Auth routes ───────────────────────────────────────────────────────────
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		jwtSecret = "changeme"
+	}
+
+	authRepo := auth.NewRepository(pool)
+	authSvc := auth.NewService(authRepo)
+	authHandler := auth.NewHandler(authSvc)
+
+	r.Route("/api/v1/auth", authHandler.Routes(jwtSecret))
+
+	// ── Language routes ───────────────────────────────────────────────────────
+	langRepo := language.NewRepository(pool)
+	langSvc := language.NewService(langRepo)
+	langHandler := language.NewHandler(langSvc)
+
+	r.Route("/api/v1/languages", langHandler.PublicRoutes())
+	r.Route("/api/v1/admin/languages", langHandler.AdminRoutes(jwtSecret))
+
+	// ── Phrase routes ─────────────────────────────────────────────────────────
+	phraseRepo := phrase.NewRepository(pool)
+	phraseSvc := phrase.NewService(phraseRepo)
+	phraseHandler := phrase.NewHandler(phraseSvc)
+
+	// ── Validation routes (votes, flags) ──────────────────────────────────────
+	validationRepo := validation.NewRepository(pool)
+	validationSvc := validation.NewService(validationRepo)
+	validationHandler := validation.NewHandler(validationSvc)
+
+	// Mount both phrase and validation routes under /api/v1/phrases
+	r.Route("/api/v1/phrases", func(router chi.Router) {
+		phraseHandler.Routes(jwtSecret)(router)
+		validationHandler.Routes(jwtSecret)(router)
+	})
 
 	// ── Server ────────────────────────────────────────────────────────────────
 	port := os.Getenv("PORT")
