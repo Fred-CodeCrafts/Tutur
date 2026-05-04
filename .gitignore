@@ -1,0 +1,23 @@
+# Go
+be/bin/
+be/*.exe
+be/vendor/
+
+# Env
+.env
+*.env
+
+# Flutter
+fe/mobile/.dart_tool/
+fe/mobile/.flutter-plugins
+fe/mobile/.flutter-plugins-dependencies
+fe/mobile/build/
+fe/mobile/.packages
+
+# React
+fe/web/node_modules/
+fe/web/dist/
+fe/web/.env.local
+
+# Misc
+misc/*.log
