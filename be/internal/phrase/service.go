@@ -26,8 +26,14 @@ type SubmitPhraseRequest struct {
 
 // SubmitPhraseResponse is returned after a successful phrase submission.
 type SubmitPhraseResponse struct {
-	ID     uuid.UUID           `json:"id"`
-	Status domain.PhraseStatus `json:"status"`
+	ID           uuid.UUID            `json:"id"`
+	Status       domain.PhraseStatus  `json:"status"`
+	ScriptStatus domain.ScriptStatus  `json:"script_status"`
+}
+
+// Enqueuer is a dependency for enqueuing AI jobs (injected from main).
+type Enqueuer interface {
+	EnqueuePhrase(phraseID uuid.UUID, textLatin, translation string)
 }
 
 // Service defines the business logic interface for phrase operations.
@@ -39,15 +45,17 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	repo     Repository
+	enqueuer Enqueuer
 }
 
 // NewService creates a new phrase service.
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, enqueuer Enqueuer) Service {
+	return &service{repo: repo, enqueuer: enqueuer}
 }
 
-// SubmitPhrase validates and persists a new phrase with status 'pending'.
+// SubmitPhrase validates and persists a new phrase with status 'pending',
+// then enqueues it for AI processing.
 func (s *service) SubmitPhrase(ctx context.Context, contributorID uuid.UUID, req SubmitPhraseRequest) (*SubmitPhraseResponse, error) {
 	// Verify language is active
 	active, err := s.repo.IsLanguageActive(ctx, req.LanguageCode)
@@ -82,7 +90,12 @@ func (s *service) SubmitPhrase(ctx context.Context, contributorID uuid.UUID, req
 		return nil, fmt.Errorf("create phrase: %w", err)
 	}
 
-	return &SubmitPhraseResponse{ID: p.ID, Status: p.Status}, nil
+	// Enqueue async AI processing
+	if s.enqueuer != nil {
+		s.enqueuer.EnqueuePhrase(p.ID, p.TextLatin, p.Translation)
+	}
+
+	return &SubmitPhraseResponse{ID: p.ID, Status: p.Status, ScriptStatus: p.ScriptStatus}, nil
 }
 
 // GetPhraseByID retrieves a phrase by its UUID.
@@ -96,7 +109,6 @@ func (s *service) GetPhraseByID(ctx context.Context, id uuid.UUID) (*domain.Phra
 	}
 	return p, nil
 }
-
 // ListPendingPhrases returns all pending phrases for voting.
 func (s *service) ListPendingPhrases(ctx context.Context) ([]domain.Phrase, error) {
 	phrases, err := s.repo.ListPendingPhrases(ctx)
