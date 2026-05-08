@@ -61,7 +61,7 @@ class ProfilePage extends StatelessWidget {
                     ),
                   ),
                   const Text(
-                    'Senior Javanese Contributor • Level 12',
+                    'Senior Javanese Contributor',
                     style: TextStyle(
                       fontFamily: 'Lexend',
                       fontSize: 13,

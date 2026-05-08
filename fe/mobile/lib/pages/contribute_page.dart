@@ -299,20 +299,7 @@ class _ValidationCard extends StatelessWidget {
                     child: const Icon(Icons.play_circle_fill_rounded,
                         color: AppColors.primary, size: 26),
                   ),
-                  const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.onSurface..withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text('Snippet Contribution',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontFamily: 'PlusJakartaSans',
-                            color: AppColors.onSurfaceVariant)),
-                  ),
+                  
                 ],
               ),
               Row(
